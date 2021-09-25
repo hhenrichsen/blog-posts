@@ -1,7 +1,7 @@
 ---
 title: "On Minecraft Plugins: Gradle and Reproducible Builds"
-date: 2021-09-23T12:16:41-06:00
-draft: true
+date: 2021-09-24T12:16:41-06:00
+draft: false
 tags:
  - Gradle
  - Minecraft
@@ -229,4 +229,216 @@ And you're all set!
 
 ### Building the `build.gradle`
 
-## Some Best Practices
+Now let's start working on writing our file using some of the concepts we talked
+about above. First, let's load a plugin that makes it a lot easier to deal with
+Java, and set up some fundamental information:
+
+{{< filelabel build.gradle.kts >}}
+```kotlin {linenos=table}
+plugins {
+  java
+}
+
+// The main package name
+group = "me.hhenrichsen"
+// Using SemVer instead of SNAPSHOT versioning
+version = "1.0.0"
+```
+{{< /filelabel >}}
+
+Next, let's get some repositories in to let us get Spigot:
+
+{{< filelabel build.gradle.kts >}}
+```kotlin {linenos=table}
+plugins {
+  java
+}
+ 
+// The main package name
+group = "me.hhenrichsen"
+// Using SemVer instead of SNAPSHOT versioning
+version = "1.0.0"
+
+repositories {
+  // Used for anything we've build with BuildTools
+  mavenLocal()
+
+  // Used for Spigot-API and non-NMS Spigot
+  maven(url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/") 
+}
+
+dependencies {
+  // Request the Spigot API.
+  implementation("org.spigotmc:spigot-api:1.17-R0.1-SNAPSHOT")
+}
+```
+{{< /filelabel >}}
+
+What we're saying here is look for things locally first, in our `mavenLocal`
+repository. If we can't find it there, go look in another maven repository--
+the one located at the URL we give it.
+
+Then we tell Gradle what we're looking for--in this case, Spigot. And that's all
+we need to be able to compile and package a plugin. Much less typing than
+Maven's XML, and pretty straightforward as far as things go. The one thing that
+might be unusual here is the `implementation` function call. That's saying that
+we require this dependency both when we compile this project, and that it's
+going to be given to us when we run this project. There are a couple other of 
+these functions called *configurations* that do a variety of things, but the
+main three that I use are `implementation`, `testImplementation`, and
+`testRuntimeOnly`.
+
+And interestingly enough, that's all we need to turn this project into a jar.
+
+{{< terminal >}}
+gradle jar
+{{< /terminal >}}
+
+If all you have is what we've set up above, this will go through, but give you
+a very empty jar. If we wanted to add code to our project, this is the
+structure it would take:
+
+```
+SampleProject/
+├── build.gradle.kts
+├── gradle
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew
+├── gradlew.bat
+├── settings.gradle.kts
+└── src
+    └── main
+        ├── java
+        │   └── me
+        │       └── hhenrichsen
+        │           └── SamplePlugin.java
+        └── resources
+            └── plugin.yml
+```
+
+And here are my super-simple files:
+
+{{< filelabel "src/main/java/me/hhenrichsen/SamplePlugin.java" >}}
+```java {linenos=table}
+package me.hhenrichsen;
+
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class SamplePlugin extends JavaPlugin { }
+```
+{{< /filelabel >}}
+
+{{< filelabel "src/main/resources/plugin.yml" >}}
+```yaml {linenos=table}
+name: SamplePlugin
+main: me.hhenrichsen.SamplePlugin
+version: 1.0.0
+```
+{{< /filelabel >}}
+
+With the Java plugin, gradle will automatically compile anything in the
+src/main/java folder into your jar, and copy anything in the resources folder
+into your jar. `me.hhenrichsen` in this case is my base package. Notice how it
+matches my `group` in the gradle file up above. Your base package and group
+should match as well. In my own projects I like to introduce another package
+between my base group and the rest of the project, like
+`me.hhenrichsen.sampleplugin`.
+
+## Leveling Up Beyond the Basics
+
+Now that we've got plugins, repositories, and dependencies covered, let's talk
+about tasks. I said earlier that tasks let us do repetitive things, and one 
+example of that is updating strings like the version string. I want that to be
+in one place, and for Gradle to copy that everywhere else that it's needed.
+
+To do that, we need to look in a task called `processResources` that 
+unsurprisingly lets us configure the steps of how resources are processed.
+
+First, I'm going to add a new file called `gradle.properties`. This is a
+great place to store settings that are prone to change, like plugin versions,
+base spigot versions, and the versions of libraries.
+
+{{< filelabel "gradle.properties" >}}
+```text {linenos=table}
+version=1.0.0
+```
+{{< /filelabel >}}
+
+Next, I'm going to modify my `build.gradle.kts` to pull from those properties:
+
+{{< filelabel build.gradle.kts >}}
+```kotlin {linenos=table,hl_lines=["7-8", "27-30"]}
+plugins {
+  java
+}
+ 
+// The main package name
+group = "me.hhenrichsen"
+// Pull version from gradle.properties
+val version: String by project
+
+repositories {
+  // Used for anything we've build with BuildTools
+  mavenLocal()
+
+  // Used for Spigot-API and non-NMS Spigot
+  maven(url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/") 
+}
+
+dependencies {
+  // Request the Spigot API.
+  implementation("org.spigotmc:spigot-api:1.17-R0.1-SNAPSHOT")
+}
+
+// If you wanted to expand author to "UberPilot", you'd write
+// expand("version" to version, "author" to "UberPilot")
+// in the task below.
+
+// Replace ${version} in resources with the version
+tasks.processResources {
+  expand("version" to version)
+}
+```
+{{< /filelabel >}}
+
+I'll also update my very basic `plugin.yml` at this point:
+
+{{< filelabel "src/main/resources/plugin.yml" >}}
+```yaml {linenos=table,hl_lines=[3]}
+name: SamplePlugin
+main: me.hhenrichsen.SamplePlugin
+version: ${version}
+```
+{{< /filelabel >}}
+
+If I update the version to `1.0.5` in `gradle.properties`, and run these
+commands:
+
+{{< terminal >}}
+gradle clean
+gradle jar
+{{< /terminal >}}
+
+We get a new jar produced in `build/libs/SamplePlugin-1.0.5.jar`. If I were to
+drop it into a server, I'd get this message on startup:
+
+{{< output >}}
+[SamplePlugin] Loading SamplePlugin v1.0.5
+{{< /output >}}
+
+So not only did it update the project's version, but it also moved that version
+into the `plugin.yml` which can then be used from within the plugin!
+
+You can also try moving the Spigot API version into that properties file. That
+one is relatively simple to do, especially if you use [String 
+Interpolation](https://kotlinlang.org/docs/idioms.html#string-interpolation).
+
+## Takeaways
+
+This is just one of the cool automated things you can do with Gradle, but seeing
+that I could do things like this was one of the reasons that I swapped over to
+Gradle from Maven. Another cool thing you can do with Gradle is include
+libraries in your jar, or run tests and check coverage. Each of these take a 
+little more setup, so I'll write some more posts on them later.
