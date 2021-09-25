@@ -74,10 +74,10 @@ same.
 **Pro Tip:** Make sure that your gradle wrappers are marked as executable to git
 by running:
 
-```
+{{< terminal >}}
 git update-index --chmod=+x ./gradlew
 git update-index --chmod=+x ./gradlew.bat
-```
+{{< /terminal >}}
 
 Source files (Java files) are stored in the `src/main/java` directory. 
 Resource files (like `plugin.yml`) are stored in the `src/main/resources`
@@ -89,9 +89,9 @@ live at `src/main/resources/plugin.yml`.
 
 What does this let us do? In the terminal, we can run this command:
 
-```
+{{< terminal >}}
 gradle jar
-```
+{{< /terminal >}}
 
 And it'll spit out a jar file in the `build/libs` folder. There are a bunch
 of improvements we can make to this process, but I'll leave that to another
@@ -107,9 +107,9 @@ GitHub.
 To start, we need to make the folder where these files will live, 
 `.github/workflows`. 
 
-```
+{{< terminal >}}
 mkdir .github/workflows
-```
+{{< /terminal >}}
 
 In that folder, let's make a file named `prerelease.yml`. 
 
