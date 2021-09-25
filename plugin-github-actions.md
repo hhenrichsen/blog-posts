@@ -33,7 +33,7 @@ own.
 *If you already have a working Gradle setup, feel free to skip to 
 [here]({{< relref "#a-simple-action" >}}).*
 
-`build.gradle.kts`
+{{< filelabel "build.gradle.kts" >}}
 ```kotlin 
 // We're developing for Java
 plugins {
@@ -61,6 +61,7 @@ dependencies {
     implementation("org.spigotmc:spigot-api:1.17-R0.1-SNAPSHOT")
 }
 ```
+{{< /filelabel >}}
 
 I commented most of that file, but the idea is that we say "these are the 
 places we can get the things we need", then say "these are the things
@@ -112,7 +113,7 @@ mkdir .github/workflows
 
 In that folder, let's make a file named `prerelease.yml`. 
 
-`prerelease.yml`
+{{< filelabel "prerelease.yml" >}}
 ```yaml {linenos=table,linenostart=1}
 ---
 name: "Prerelease"
@@ -131,13 +132,25 @@ jobs:
     name: "Pre-release"
     runs-on: ubuntu-latest
 ```
+{{< /filelabel >}}
 
 This sets up some basic settings before we get to the meat of the action; what
 it runs on, when it runs, what files it should ignore, etc. Now we should add
 some build steps.
 
-`prerelease.yml` *(note the line numbers)*
-```yaml {linenos=table,linenostart=13}
+{{< filelabel "prerelease.yml" >}}
+```yaml {linenos=table}
+name: "Prerelease"
+on: 
+  push:
+    # Run on the main branch
+    branches: 
+      - "main"
+    # Ignore documentation
+    paths-ignore:
+      - "README.md"
+      - "docs/**"
+
 jobs:
   pre-release:
     name: "Pre-release"
@@ -170,6 +183,7 @@ jobs:
           files: |
             build/libs/*.jar
 ```
+{{< /filelabel >}}
 
 This is a lot to parse through, so let's start at the beginning. We're adding
 a section that's a list of steps. Each step does something important to the
@@ -198,6 +212,7 @@ a new `build.gradle.kts`.
 
 ### The New `build.gradle.kts`
 
+{{< filelabel "build.gradle.kts" >}}
 ```kotlin {linenos=table}
 // We're developing for Java
 plugins {
@@ -243,13 +258,14 @@ tasks.withType<JacocoReport> {
 }
 
 ```
+{{< /filelabel >}}
 
 ### The Workflow Files
 Now onto the workflow files. For `prerelease.yml`, I only want to run the build
 when it's not a full release, so I should tell it to ignore tags that match 
 those that will be run when I run `release.yml`.
 
-`prerelease.yml`
+{{< filelabel "prerelease.yml" >}}
 ```yaml {linenos=table}
 ---
 name: "Prerelease"
@@ -268,10 +284,11 @@ on:
 
 jobs:
 ```
+{{< /filelabel >}}
 
 Next, I'm going to set up a new workflow for my full releases:
 
-`release.yml`
+{{< filelabel "release.yml" >}}
 ```yaml {linenos=table}
 ---
 name: "Full Release"
@@ -319,6 +336,7 @@ jobs:
           files: |
             build/libs/*.jar
 ```
+{{< /filelabel >}}
 
 Now I can run `git tag 1.0.0` and then `git push --tags` and I'll get a nice
 fancy release set up on my GitHub page, and a coverage report generated for
