@@ -11,10 +11,15 @@ tags:
 
 ## Introduction
 If you're hosting your code on GitHub and not using GitHub Actions, you're
-missing out. (Aside: You should be hosting your code somewhere, since there are
-a lot of benefits from being backed up off of your computer, especially if you
-use an open source license that allows other people to fork or propose changes
-to your code.) GitHub Actions will do all sorts of cool things for you as soon
+missing out.
+
+{{< aside "Backing up your code" >}}
+You should be hosting your code somewhere, since there are a lot of benefits
+from being backed up off of your computer. If you use an open source license,
+other people might even fork or propose improvements to your code.
+{{< /aside >}}
+
+GitHub Actions will do all sorts of cool things for you as soon
 as you push your code, including running tests, building development jars,
 checking test coverage, and even sending Discord notifications. That's also one
 way you can get those fancy "Build: Passing" badges on your plugin and GitHub
