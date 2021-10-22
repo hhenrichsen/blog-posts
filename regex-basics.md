@@ -1,7 +1,7 @@
 ---
 title: "Regex: The Basics"
-date: 2021-10-15T12:00:00-06:00
-draft: true
+date: 2021-10-21T12:00:00-06:00
+draft: false
 tags:
  - Programming
  - Regex
@@ -285,7 +285,7 @@ class:
 * `\W` is for word, `[^A-z0-9\-_]`
 * `\S` is for space, `[^ \n\r]`
 
-### Groups
+### Groups and Non-Capturing Groups
 
 We've used groups already, but we should be aware that there are two types of
 groups: capturing and non-capturing. Capturing groups are the parenthesis-based
@@ -310,3 +310,21 @@ inputs:
 | `(123) 456-7890` | `(123) 456-7890` | `123`     | `<empty>` | `456`     | `7890`    |
 | `123 456-7890`   | `123 456-7890`   | `<empty>` | `123`     | `456`     | `7890`    |
 | `123-456-7890`   | `123 456-7890`   | `<empty>` | `123`     | `456`     | `7890`    |
+
+This makes it super easy to put things in a consisten format, even when they
+might be entered in a non-standard format. These are often the most important
+result of doing anything in regex, because they allow you to specify formats 
+and then extract pertinent information.
+
+## Conclusion
+
+Hopefully this gives you the resources you need to start writing at least basic
+regex. It can be a powerful tool if used in the right circumstances, and a 
+powerful, high-caliber footgun if used incorrectly. Feel free to let me know 
+your thoughts on {{< discord >}}.
+
+## Other Resources
+
+* [Regexr](https://regexr.com/) is incredibly useful. It lets you write and test
+  your regex on a variety of text, and helps to explain and visualize it as you
+  go. It was instrumental in creating this post.
